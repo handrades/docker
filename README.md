@@ -16,7 +16,7 @@ Hypervisor | Huh?
 
 Just like VMs, containers depend on physical resources like RAM, Processor, Network and Storage. So they both depend on a physical machine that provides the resources. You can run containers in Mac, Linux and Windows. In this article I will be talking about how to setup Docker in a Windows environment.
 
-Now the new Microsoft, to be more specific Satya era. They are making some crazy things and they are moving crazy fast. This new Microsoft is really thinking about the customer and not themselves. But enough said, my point is that since this new Microsoft is moving so fast, so is their technology. Because of this I am sure some of the following information might not be relevant in a few months from now.
+Now with the new Microsoft, to be more specific Satya era. They are making some crazy things and they are moving crazy fast. This new Microsoft is really thinking about the customer and not themselves. But enough said, my point is that since this new Microsoft is moving so fast, so is their technology. Because of this I am sure some of the following information might not be relevant in a few months from now.
 
 Often people used to tell me that Medical Doctors was a hard profession because they always had to stay up to date by going to conferences and keep taking new classes to be up to date. This is why I was not interested in it. Well, I made a really bad decision on IT, because they are worst. Technology evolves so much faster that it is hard to keep up with it, but at the same time you will never get bored.
 
@@ -55,13 +55,54 @@ Once Docker is installed you can run your first hello world container from a Pow
 docker run hello-world
 ```
 
+The output should look something like this:
+
+```PowerShell
+Unable to find image 'hello-world:latest' locally
+latest: Pulling from library/hello-world
+1b930d010525: Pull complete
+Digest: sha256:f9dfddf63636d84ef479d645ab5885156ae030f611a56f3a7ac7f2fdd86d7e4e
+Status: Downloaded newer image for hello-world:latest
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (amd64)
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker ID:
+ https://hub.docker.com/
+
+For more examples and ideas, visit:
+ https://docs.docker.com/get-started/
+```
+
+You just ran your first container! Attaboy, you are doing great job!
+
+Let's now check which docker version we are running on.
+
+```PowerShell
+docker version
+```
+
+To retrieve more docker information more like a type of dashboard information you would have the retrieve system information. This will show you for example your container status, like stopped, running and paused state.Along with a little more information.
+
+```PowerShell
+docker system info
+```
+
 ### Alpine VM
 
 In Windows you can run Windows and Linux containers. The reason why you are also able to run Linux containers is because an Alpine Linux VM is created in Hyper-V automatically when you install Docker Desktop.
-
-## VM to Containers
-
-Before we begin we need to understand some container lingo. As I mentioned earlier, containers and VMs are not the same. If you come from a VM background
 
 ## Images
 
@@ -75,19 +116,19 @@ By default you will be pulling images from the __[Docker Hub](https://hub.docker
 
 ### Pull an Image
 
-You can go into Docker Hub and find an image you are interested on. In this case I will be pulling a [MySQL](https://hub.docker.com/_/mysql) image. You can scroll down in their documentation and find several examples as to how to use their image. In this case I will just be pulling the image.
+You can go into Docker Hub and find an image you are interested on. In this case I will be pulling a [PowerShell](https://hub.docker.com/_/microsoft-powershell) image. You can scroll down in their documentation and find several examples as to how to use their image. In this case I will just be pulling the image.
 
 When we pull an image, we are retrieving the container image (Golden OS Image in VM terms) to be ready to go in our environment.
 
 ```PowerShell
-docker pull mysql
+docker pull mcr.microsoft.com/powershell:7.0.0-alpine-3.10
 ```
 
-Every time you pull a Linux image it will be saved into the Alpine Linux VM. So as you keep adding more and more images the VM will keep increasing in size.
+Every time you pull a Linux image it will be saved into the Alpine Linux VM. So as you keep adding more and more images the docker VM will keep increasing in size.
 
 ### Image Versioning
 
-Be default when you pull an image it will grab the latest version. Actually when you pull an image you are executing it as __docker pull mysql:latest__. The ":latest" specifies which version you want to pull. This is important because if you want to pull an older image that you know it works on your environment you could do something like __docker pull mysql:8.0.19__.
+Be default when you pull an image it will grab the latest version. Actually when you pull an image you are executing it as __docker pull mcr.microsoft.com/powershell:latest__. The ":latest" specifies which version you want to pull. This is important because if you want to pull an older image that you know it works on your environment you could do something like __docker pull mcr.microsoft.com/powershell:7.0.0-alpine-3.10__.
 
 ### Removing an Image
 
@@ -111,12 +152,12 @@ Now that the container (Virtual Machine in VM terms) is deleted we can delete th
 ```PowerShell
 docker images ls
 
-REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
-mysql               latest              9228ee8bac7a        10 days ago         547MB
-hello-world         latest              fce289e99eb9        10 days ago       1.84kB
+REPOSITORY                     TAG                       IMAGE ID            CREATED             SIZE
+mcr.microsoft.com/powershell   7.0.0-alpine-3.10         233aeb43c1f9        2 weeks ago         176MB
+hello-world                    latest                    fce289e99eb9        10 days ago        1.84kB
 ```
 
-For some reason the Created column always gets jacked up in my personal experience, but that's fine. I just need to grab the Image ID for my hello-world container and delete it.
+I just need to grab the Image ID for my hello-world container and delete it. So I will just grab the first 4 characters.
 
 ```PowerShell
 docker rmi fce2
@@ -132,11 +173,11 @@ You should get a similar output, letting you know that the image has been remove
 ```PowerShell
 docker images ls
 
-REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
-mysql               latest              9228ee8bac7a        10 days ago         547MB
+REPOSITORY                     TAG                       IMAGE ID            CREATED             SIZE
+mcr.microsoft.com/powershell   7.0.0-alpine-3.10         233aeb43c1f9        2 weeks ago         176MB
 ```
 
-Now this is a tru uninstall, that you will never get from uninstalling an application from a local machine.
+Now this is a true uninstall, that you will never get from uninstalling an application from a local machine.
 
 ### Prune Junk
 
@@ -146,4 +187,112 @@ As we start working more with Docker, we will be pulling more and more images an
 docker system prune
 ```
 
-## 
+## DockerFile
+
+So far we have talked about somebody elses image, but most likely we want to create our own. So with dockerfile we will be able to modify an image and create our own version. In a nutshell we have the following instructions:
+
+* From
+  * This is were you reference a base image to start with.
+* Label
+  * Metadata, this is where you could add the author.
+* Run
+  * This is where you run custom command like install from APT a package, starting a service, Run a script, etc.
+* Copy
+  * This will help you only copy things into the image.
+* WorkDir
+  * Is an alias to the docker container working directory you want to reference to.
+* Expose
+  * This is used for ports. This is the external port that will expose in the internal container.
+* Env
+  * Environmental variables to run your apps.
+* CMD
+  * Runs commands contained in your image along with arguments.
+
+If you would like to learn more about docker images you can reference [this](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/) link, but I will add some basic examples in the dockerfile folder.
+
+### Building a Custom Image
+
+I created a custom image and dumped it in the dockerfile folder. It's called 1-UD.dockerfile. So let's build it.
+
+```PowerShell
+docker build -t andradehector/ud:0.1 --file dockerfile\1-UD.dockerfile .
+```
+
+* docker build
+  * Tells docker to build the image
+* -t
+  * Adds a tag name to the image you are building
+  * In my case I tagged it as andradehector/ud:0.1. Where andradehector is my Docker Hub username. ud:0.1 is the name I want to give it along with the version.
+* --file
+  * By default if you name your docker file __dockerfile__ you don't need this parameter.
+  * In my case since I named it something else and also saved it in a folder I have to specify the whole path to the file.
+* .
+  * The build context.
+
+### Update an Image
+
+You cannot update an image you re-tag it.
+
+```PowerShell
+docker build -t andradehector/ud:0.2 --file dockerfile\1-UD.dockerfile .
+```
+
+So now that you updated the image content you should now have two images. In this case version 0.1 and 0.2. The nice thing about containers is that even though you have two versions. For the second version it will only add the difference from version 0.1. So if you are familiar with Git, it would be the same concept for version controlling. You are not duplicating data from version 0.1, as it is used to build 0.2. This is very powerful!
+
+### Tag Image
+
+In case you forget to tag you image by default it will be tagged as latest. If you want to tag it something else like 0.3 you can run the following against the latest image.
+
+```PowerShell
+docker tag andradehector/ud:latest andradehector/ud:0.3
+```
+
+## Containers
+
+```PowerShell
+docker version
+docker system info
+docker images
+docker ps
+docker ps -a
+#interactive container
+#use the andradehector/ud:0.2 image
+#run powershell with pwsh
+docker run -it andradehector/ud:0.2 pwsh
+get-process
+exit
+docker ps
+docker ps -a
+docker start c323
+docker exec -it c323 pwsh
+#exit container but not stopping container
+control + P + Q
+docker ps
+docker stop c323
+docker rm c323
+
+# -d run a container in detach mode, in other words in the background
+# -p map host port 3000 to container port 80
+# --name container name
+# image name
+docker run -d -p 3000:80 --name UD andradehector/ud:0.2
+
+#inspect is like right clicking on container
+docker inspect c323
+
+
+```
+
+## Remote Hosts
+
+You can run containers locally you have to
+
+```PowerShell
+docker run --name web1 UD:latest
+```
+
+asds
+
+```PowerShell
+docker run --name web1 --hostname myDockerServer UD:latest
+```
