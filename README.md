@@ -49,6 +49,12 @@ choco install docker-desktop -y
 
 That's it! it's installed.
 
+Let's now check which docker version we are running on, from a PowerShell window. By the way, I will be executing all the docker commands from a non elevated PowerShell window.
+
+```PowerShell
+docker version
+```
+
 Once Docker is installed you can run your first hello world container from a PowerShell window. In this case you don't necessarily have to open an elevated window.
 
 ```PowerShell
@@ -86,18 +92,19 @@ For more examples and ideas, visit:
  https://docs.docker.com/get-started/
 ```
 
-You just ran your first container! Attaboy, you are doing great job!
+You just ran your first container. Attaboy!
 
-Let's now check which docker version we are running on.
-
-```PowerShell
-docker version
-```
-
-To retrieve more docker information more like a type of dashboard information you would have the retrieve system information. This will show you for example your container status, like stopped, running and paused state.Along with a little more information.
+To retrieve more docker information more like a type of dashboard information you would have the retrieve the system information. This will show you for example your container status, like stopped, running and paused state. Along with a little more information.
 
 ```PowerShell
 docker system info
+```
+
+Finally, let's clean up our work, by removing the container and the image. Since we will not be needing them any more. I will not go into detail about the following code as we will be go more in detail later on.
+
+```PowerShell
+docker rm $(docker ps -aq) -f
+docker rmi hello-world
 ```
 
 ### Alpine VM
@@ -132,62 +139,46 @@ Be default when you pull an image it will grab the latest version. Actually when
 
 ### Removing an Image
 
-Once you are done with an image for example our hello world image, we can remove it. To do that we first need to see if there are not running containers (Virtual Machines in VM terms) from our hello world image, so let's verify.
+Once you are done with an image, we can remove it. First let's list all the images available.
 
 ```PowerShell
-docker ps -a
-
-CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS                         PORTS               NAMES
-ea50bf78b6cb        hello-world         "/hello"            52 minutes ago      Exited (0) 52 minutes ago                          nifty_feynman
-```
-
-In my case I had one container in an _exited_ (Shut Down in VM terms) status, so I need to delete it first. To delete it, we need to grab the first 4 characters from the container ID column. In my case the the first 4 characters were ea50.
-
-```PowerShell
-docker rm ea50
-```
-
-Now that the container (Virtual Machine in VM terms) is deleted we can delete the image (Golden OS Image in VM terms) too. First let list all the images available.
-
-```PowerShell
-docker images ls
+docker images
 
 REPOSITORY                     TAG                       IMAGE ID            CREATED             SIZE
 mcr.microsoft.com/powershell   7.0.0-alpine-3.10         233aeb43c1f9        2 weeks ago         176MB
-hello-world                    latest                    fce289e99eb9        10 days ago        1.84kB
 ```
 
-I just need to grab the Image ID for my hello-world container and delete it. So I will just grab the first 4 characters.
+You just need to grab the Image ID, __233aeb43c1f9__ in my case. In this case since I just have one image I could execute one of the following commands.
 
 ```PowerShell
-docker rmi fce2
+docker rmi 2
+docker rmi 23
+docker rmi 233
+docker rmi 233a
+```
 
+The output should look something like:
+
+```PowerShell
 Untagged: hello-world:latest
 Untagged: hello-world@sha256:f9dfddf63636d84ef479d645ab5885156ae030f611a56f3a7ac7f2fdd86d7e4e
 Deleted: sha256:fce289e99eb9bca977dae136fbe2a82b6b7d4c372474c9235adc1741675f587e
 Deleted: sha256:af0b15c8625bb1938f1d7b17081031f649fd14e6b233688eea3c5483994a66a3
 ```
 
-You should get a similar output, letting you know that the image has been removed. So next time you __docker image ls__ you should now get only one image available.
+The reason why we are able to execute one of the 4 commands above is because we just have on image in our environment. If we were to have more images we would have to add more characters to the __container ID__ value. A lot of people usually just add the first 4 characters, in most cases this is enough. But note that depending on your environment you might need to add more.
+
+So next time you __docker images__ you should not get any images back.
 
 ```PowerShell
-docker images ls
+docker images
 
 REPOSITORY                     TAG                       IMAGE ID            CREATED             SIZE
-mcr.microsoft.com/powershell   7.0.0-alpine-3.10         233aeb43c1f9        2 weeks ago         176MB
 ```
 
 Now this is a true uninstall, that you will never get from uninstalling an application from a local machine.
 
-### Prune Junk
-
-As we start working more with Docker, we will be pulling more and more images and running a lot of containers. So we will be start getting more temp images and will will start adding up and consuming resources. SO we would want to prune all that.
-
-```PowerShell
-docker system prune
-```
-
-## DockerFile
+### DockerFile
 
 So far we have talked about somebody elses image, but most likely we want to create our own. So with dockerfile we will be able to modify an image and create our own version. In a nutshell we have the following instructions:
 
@@ -215,14 +206,14 @@ If you would like to learn more about docker images you can reference [this](htt
 I created a custom image and dumped it in the dockerfile folder. It's called 1-UD.dockerfile. So let's build it.
 
 ```PowerShell
-docker build -t andradehector/ud:0.1 --file dockerfile\1-UD.dockerfile .
+docker build -t pwsh-ud --file dockerfile\1-UD.dockerfile .
 ```
 
 * docker build
   * Tells docker to build the image
 * -t
   * Adds a tag name to the image you are building
-  * In my case I tagged it as andradehector/ud:0.1. Where andradehector is my Docker Hub username. ud:0.1 is the name I want to give it along with the version.
+  * In my case I tagged it as __pwsh-ud__.
 * --file
   * By default if you name your docker file __dockerfile__ you don't need this parameter.
   * In my case since I named it something else and also saved it in a folder I have to specify the whole path to the file.
@@ -231,68 +222,388 @@ docker build -t andradehector/ud:0.1 --file dockerfile\1-UD.dockerfile .
 
 ### Update an Image
 
-You cannot update an image you re-tag it.
+So let's say you updated your PowerShell dashboard and you now want to update it. You cannot update an image you re-tag it. So we just add a second version of the application.
 
 ```PowerShell
-docker build -t andradehector/ud:0.2 --file dockerfile\1-UD.dockerfile .
+docker build -t pwsh-ud:0.2 --file dockerfile\2-UD.dockerfile .
 ```
 
-So now that you updated the image content you should now have two images. In this case version 0.1 and 0.2. The nice thing about containers is that even though you have two versions. For the second version it will only add the difference from version 0.1. So if you are familiar with Git, it would be the same concept for version controlling. You are not duplicating data from version 0.1, as it is used to build 0.2. This is very powerful!
+So now that you updated the image content you should now have two images. The problem now is that since we did not added a version to our first image it was configured as latest. Which is not correct now.
 
 ### Tag Image
 
-In case you forget to tag you image by default it will be tagged as latest. If you want to tag it something else like 0.3 you can run the following against the latest image.
+So we now need to tag the image. So let's tag the latest image to be version 0.1.
 
 ```PowerShell
-docker tag andradehector/ud:latest andradehector/ud:0.3
+docker tag pwsh-ud:latest pwsh-ud:0.1
+```
+
+If we run __docker images__ we should now see that we have three pwsh-ud images. Versions 0.1, 0.2 and latest.
+
+```PowerShell
+docker images
+
+REPOSITORY                     TAG                 IMAGE ID            CREATED             SIZE
+pwsh-ud                        0.2                 ee20ad29f23d        3 minutes ago       241MB
+pwsh-ud                        0.1                 bce45f0f4f26        4 minutes ago       241MB
+pwsh-ud                        latest              bce45f0f4f26        4 minutes ago       241MB
+```
+
+If you look closely the image ID is repeated twice vor version 0.1 and latest. This means that there is some sort of pointer and that the storage is not affected by creating multiple tags from the same version.
+
+So, let's now make the latest point to version 0.2.
+
+```PowerShell
+docker tag pwsh-ud:0.2 pwsh-ud:latest
+```
+
+So now when we list the images again we see that the latest is now pointing to version 0.2 by looking at the image ID.
+
+```PowerShell
+docker images
+
+REPOSITORY                     TAG                 IMAGE ID            CREATED             SIZE
+pwsh-ud                        0.2                 ee20ad29f23d        7 minutes ago       241MB
+pwsh-ud                        latest              ee20ad29f23d        7 minutes ago       241MB
+pwsh-ud                        0.1                 bce45f0f4f26        8 minutes ago       241MB
+```
+
+The nice thing about containers is that even though we now have two Web Application versions. For the second version it will only add the difference from version 0.1. So if you are familiar with Git, it would be the same concept for version controlling. You are not duplicating data from version 0.1, as it is used to build 0.2. This is very powerful!
+
+### Recap
+
+```PowerShell
+#Get docker version
+docker version
+#Start your first container, it will pull image and run it afterwards
+docker run hello-world
+#Get what I call Docker dashboard info
+docker system info
+#Download a Golden Image (speaking in VM terms)
+docker pull mcr.microsoft.com/powershell:7.0.0-alpine-3.10
+#List docker images
+docker images
+#Delete docker image by ID
+docker rmi [Image ID]
+#Build a custom docker image
+docker build -t pwsh-ud --file dockerfile\1-UD.dockerfile .
+#Increase version to a container (update docker file)
+docker build -t pwsh-ud:0.2 --file dockerfile\2-UD.dockerfile .
+#Tag a docker image
+docker tag pwsh-ud:latest pwsh-ud:0.1
+docker tag pwsh-ud:0.2 pwsh-ud:latest
 ```
 
 ## Containers
 
+### Run Container Interactively
+
+Well, we already have a few images laying around. So, let's run our first docker container.
+
 ```PowerShell
-docker version
-docker system info
-docker images
-docker ps
-docker ps -a
-#interactive container
-#use the andradehector/ud:0.2 image
-#run powershell with pwsh
-docker run -it andradehector/ud:0.2 pwsh
-get-process
-exit
-docker ps
-docker ps -a
-docker start c323
-docker exec -it c323 pwsh
-#exit container but not stopping container
-control + P + Q
-docker ps
-docker stop c323
-docker rm c323
-
-# -d run a container in detach mode, in other words in the background
-# -p map host port 3000 to container port 80
-# --name container name
-# image name
-docker run -d -p 3000:80 --name UD andradehector/ud:0.2
-
-#inspect is like right clicking on container
-docker inspect c323
-
-
+docker run -it pwsh-ud pwsh
 ```
+
+* Docker run
+  * Pulls the image from the container registry if it's not pulled already.
+  * Starts the container
+* -it
+  * Runs the container in an interactive mode.
+* pwsh-ud
+  * Is the image you want to run. In this case I didn't specified the version so it will grab the latest version.
+* pwsh
+  * Is the command you want to run interactively. In this was we will be running PowerShell.
+
+So you should now be in the container. You prompt should of changed to something like __PS />__. If you execute something like __hostname__ you should get the container's name.
+
+```PowerShell
+hostname
+```
+
+Ok, let's exit this container by executing __exit__.
+
+```Powershell
+exit
+```
+
+### List Containers
+
+We should now have our prompt back. So let's see what is our container's status. Let's list it.
+
+```PowerShell
+docker ps -a
+
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS                     PORTS               NAMES
+6d076d996560        pwsh-ud             "pwsh"              11 minutes ago      Exited (0) 4 minutes ago                       nostalgic_sutherland
+```
+
+
+### Start Container
+
+So right now we can see after we __exit__ the container from the interactive PowerShell prompt the container was changed to a stopped status. Every time you see __Exited (#)__ in the status column it means that the container is stopped. So we now need to start it up.
+
+```PowerShell
+docker start 6d07
+```
+
+### Exec Container
+
+To go back to the container's PowerShell prompt, we need to execute __docker exec__ in an interactive mode.
+
+```PowerShell
+docker exec -it 6d07 pwsh
+```
+
+* Docker exec
+  * Runs commands against the specified container
+* -it
+  * Runs the container in an interactive mode.
+* 6d07
+  * In my case this is the Container ID I want to connect to.
+* pwsh
+  * This is the command I want to execute. In my case I want to connect to a PowerShell prompt.
+
+So, what if I don't want to stop the container again but I want to exit it. You can type a few hotkeys to exit the container but don't stop it. they are the following:
+
+```PowerShell
+Ctrl + P + Q
+```
+
+### Stop Container
+
+Even though the container is now running, we didn't set it up a port to listen for incoming Web Requests. So let's stop the container.
+
+```PowerShell
+docker stop 6d07
+```
+
+### Delete Container
+
+Before we start up a new container let's delete the current container as we no longer have a use for it.
+
+```PowerShell
+docker rm 6d07
+```
+
+### Run Container
+
+Now that our environment is clean, we can now start a new container to accept Web Requests.
+
+```PowerShell
+docker run -d -p 1002:80 --name UD02 pwsh-ud:0.2
+```
+
+* Docker run
+  * Pulls the image from the container registry if it's not pulled already.
+  * Starts the container
+* -d
+  * Runs the container in the background, in a detach mode.
+* -p
+  * 1002 is the port we will be connecting to
+  * 80 is the container local port. I defined this port in my GitHub Gist that contains the PowerShell script.
+* --name
+  * you can name your container. In this case I named it UD.
+* pwsh-ud:0.2
+  * Is the image you want to run. In this case I specified that I want the 0.2 version.
+
+Now that we have a container running let's connect to it from the web browser. Let's use PowerShell to open it from our default web browser.
+
+```PowerShell
+Start-Process http://localhost:1002
+```
+
+### Run Multiple Versions
+
+In this case we have two container's versions. Version 0.1 and 0.2. Let's run them side by side.
+
+```PowerShell
+docker run -d -p 1001:80 --name UD01 pwsh-ud:0.1
+```
+
+Now let's open it from a web browser.
+
+```PowerShell
+Start-Process http://localhost:1001
+```
+
+You should now be able to compare the two versions we create it. Can you spot the differences?
+
+This is very handy for troubleshooting purposes. You are now able to spin your applications no matter the version almost with a snap of your fingers.
+
+### Inspect Container
+
+In the VM world we are used to go to our hypervisor and finding our VM and looking into the VM properties. Well, inspecting the container could be the equivalent to this. So let's inspect one of the containers. First like always we need to retrieve the Container ID.
+
+```PowerShell
+docker ps
+
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                  NAMES
+422d8e67a446        pwsh-ud:0.1         "pwsh -command '& ./…"   3 minutes ago       Up 3 minutes        0.0.0.0:1001->80/tcp   UD01
+cf65a56f4e65        pwsh-ud:0.2         "pwsh -command '& ./…"   3 minutes ago       Up 3 minutes        0.0.0.0:1002->80/tcp   UD02
+```
+
+In my case I will grab Container ID 422d.
+
+```PowerShell
+docker inspect 422d
+```
+
+This should return a json string. If you like this view you can start scroll up and look for interesting values. Like the network settings or the commands running on the container. Since I prefer PowerShell, I am going to convert the json string to a .net object and go from there.
+
+```PowerShell
+$UD01 = docker inspect 422d | ConvertFrom-Json
+$UD01
+```
+
+O yeah, a little more readable. So we now should be able to get the commands running in the container.
+
+```PowerShell
+$UD01.path
+$UD01.args
+```
+
+So this is telling us that the path is using __pwsh__ and the arguments are __-command__ followed by __& ./tmp/ud-example.ps1__.
+
+So now lets retrieve the Network settings.
+
+```PowerShell
+$UD01.NetworkSettings
+```
+
+At least for me since I am more used to PowerShell it is more readable. But since the output is json you can use another tools to visualize the data better.
+
+### Cleanup in bulk
+
+We currently have two containers running as we saw earlier. We now know that we either need the Container ID or the container name to execute a command to a container. The easiest way to retrieve the Container ID is by listing the containers in __quiet__ mode.
+
+```PowerShell
+docker ps -q
+
+422d8e67a446
+cf65a56f4e65
+```
+
+We already know how to delete a single container. Which is by using __docker rm [Container ID] -f even if it's running. Well since we just learned how to retrieve all the Container's IDs we can just append it to the remove command.
+
+```PowerShell
+docker rm $(docker ps -q) -f
+```
+
+If we re-run the list container command we should now get nothing back.
+
+```PowerShell
+docker ps -q
+```
+
+We can take the same approach for images too. So first let's retrieve all of our images IDs.
+
+```PowerShell
+docker images -q
+```
+
+Now let's remove all of our images.
+
+```PowerShell
+docker rmi $(docker images -q) -f
+```
+
+### Recreate Environment
+
+And that's it, we just cleaned up out whole environment. But just like we clean it up we should be able to get the same environment up and running in less than a minute by executing the following commands:
+
+```PowerShell
+docker build -t pwsh-ud --file dockerfile\2-UD.dockerfile .
+docker run -d -p 1000:80 pwsh-ud
+Start-Process http://localhost:1000
+```
+
+This is the power of Docker, you can build and destroy environments a couple of minutes. This is why it is very powerful.
 
 ## Remote Hosts
 
-You can run containers locally you have to
+You can run containers remotely too, by pointing to a docker server.
 
 ```PowerShell
-docker run --name web1 UD:latest
+docker run --name UD03 --hostname myDockerServer pwsh-ud
 ```
 
-asds
+### Prune Junk
+
+As we start working more with Docker, we will be pulling more and more images and running a lot of containers. So we will be start getting more temp images and will will start adding up and consuming resources. So we would want to prune all that.
 
 ```PowerShell
-docker run --name web1 --hostname myDockerServer UD:latest
+docker system prune
+```
+
+In our environment this is worthless because we just deleted everything. But it is good to know that there is a command that will delete everything that is unused.
+
+### TroubleShooting
+
+Eventually you will run into problems when working with containers and you will need to troubleshoot it. Some useful commands are __inspect__ which we already talked about, __top__ which will show you the processes runing inside the container and finally __logs__ which will display the output the commands you have executed have thrown.
+
+```PowerShell
+docker inspect 422d
+docker top 422d
+docker logs 422d
+```
+
+### Recap
+
+```PowerShell
+# Run container interactively
+docker run -it pwsh-ud pwsh
+hostname
+exit
+#List all the containers on our machine
+docker ps -a
+#Start a container
+docker start [Name | Container ID]
+#Connect interactively to a container and run PowerShell
+docker exec -it [Name | Container ID] pwsh
+# Exit container without stopping container
+Ctrl + P + Q
+#Stop a container
+docker stop [Name | Container ID]
+#Delete a container
+docker rm [Name | Container ID]
+# Run a container and map the external and internal ports
+docker run -d -p 1002:80 --name UD02 pwsh-ud:0.2
+# Open a web Browser that points to the recently created WebSite
+Start-Process http://localhost:1002
+# Open a second WebSite instance but using an older version
+docker run -d -p 1001:80 --name UD01 pwsh-ud:0.1
+# Open a web Browser that points to the recently created WebSite
+Start-Process http://localhost:1001
+# List just running containers
+docker ps
+# Look at the container's properties
+docker inspect [Name | Container ID]
+# Use PowerShell to retrieve the container's properties
+$UD01 = docker inspect [Name | Container ID] | ConvertFrom-Json
+$UD01
+$UD01.path
+$UD01.args
+$UD01.NetworkSettings
+# Get just the containers ID
+docker ps -q
+# Delete all the running containers
+docker rm $(docker ps -q) -f
+# Verify that they are now gone
+docker ps -q
+# Get just the images ID
+docker images -q
+# Delete all the images
+docker rmi $(docker images -q) -f
+# Recreate the lab again
+docker build -t pwsh-ud --file dockerfile\2-UD.dockerfile .
+docker run -d -p 1000:80 pwsh-ud
+Start-Process http://localhost:1000
+# run a container in a docker server
+docker run --name UD03 --hostname myDockerServer pwsh-ud
+# Prune Junk
+docker system prune
+#Troubleshooting
+docker inspect [Name | Container ID]
+docker top [Name | Container ID]
+docker logs [Name | Container ID]
 ```
